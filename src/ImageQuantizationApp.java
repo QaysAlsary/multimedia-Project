@@ -142,34 +142,11 @@ public class ImageQuantizationApp extends JFrame {
             }
         });
 
-//        saveImageButton.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                if (outputImage != null) {
-//                    JFileChooser fileChooser = new JFileChooser();
-//                    int result = fileChooser.showSaveDialog(ImageQuantizationApp.this);
-//                    if (result == JFileChooser.APPROVE_OPTION) {
-//                        File outputFile = fileChooser.getSelectedFile();
-//                        try {
-//                            ImageIO.write(outputImage, "png", outputFile);
-//                            JOptionPane.showMessageDialog(ImageQuantizationApp.this, "Image saved successfully.");
-//                        } catch (IOException ex) {
-//                            ex.printStackTrace();
-//                        }
-//                    }
-//                } else {
-//                    JOptionPane.showMessageDialog(ImageQuantizationApp.this, "No output image available.");
-//                }
-//            }
-//        });
 
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
     }
-
-
-
-
 
 
 
@@ -212,58 +189,35 @@ public class ImageQuantizationApp extends JFrame {
         return indexedImage;
     }
 
-    //*******************************************
-//    private void showPalette(java.util.List<Color> palette) {
-//        StringBuilder sb = new StringBuilder("<html><body>");
-//        for (Color color : palette) {
-//            sb.append("<div style='background-color:rgb(")
-//                    .append(color.getRed()).append(",")
-//                    .append(color.getGreen()).append(",")
-//                    .append(color.getBlue()).append(");width:20px;height:20px'></div>");
-//        }
-//        sb.append("</body></html>");
-//
-//        paletteLabel.setText(sb.toString());
-//    }
 
     public static JPanel drawColorHistogram(BufferedImage image) {
         int[] histogram = logic.calculateColorHistogram(image);
-
         // Find the maximum count in the histogram
         int maxCount = Arrays.stream(histogram).max().orElse(1);
-
         // Create a new JPanel to display the histogram
         JPanel histogramPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-
                 // Loop through each bin in the histogram
                 for (int i = 0; i < 256; i++) {
                     int count = histogram[i];
-
                     // Calculate the height of the histogram bar based on the count
                     int barHeight = (int) (count * 200.0 / maxCount);
-
                     // Calculate the y-coordinate of the start of the histogram bar
                     int y = getHeight() - barHeight;
-
                     // Calculate the x-coordinate of the start of the histogram bar
                     int x = i * getWidth() / 256;
-
                     // Draw the histogram bar
                     g.setColor(new Color(i, i, i));
                     g.fillRect(x, y, getWidth() / 256, barHeight);
                 }
             }
         };
-
         // Set the layout of the histogram panel to null
         histogramPanel.setLayout(null);
-
         // Set the preferred size of the histogram panel to 256x200 pixels
         histogramPanel.setPreferredSize(new Dimension(256, 200));
-
         return histogramPanel;
     }
 

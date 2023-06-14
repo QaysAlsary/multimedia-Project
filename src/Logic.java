@@ -9,32 +9,24 @@ public class Logic {
     BufferedImage applyKMeans(BufferedImage image) {
         int k = 10; // Number of clusters
         int maxIterations = 100; // Maximum number of iterations
-
         int width = image.getWidth();
         int height = image.getHeight();
-
         // Initialize the centroid colors randomly
         java.util.List<Color> centroids = getRandomCentroids(k);
-
         // Create a copy of the original image
         BufferedImage quantizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-
         // Perform K-Means clustering
         for (int iteration = 0; iteration < maxIterations; iteration++) {
             // Assign each pixel to the nearest centroid
             int[][] clusterAssignments = assignPixelsToClusters(image, centroids);
-
             // Update the centroid colors based on the assigned pixels
             java.util.List<Color> newCentroids = calculateNewCentroids(image, clusterAssignments, centroids);
-
             // Check for convergence
             if (centroids.equals(newCentroids)) {
                 break;
             }
-
             centroids = newCentroids;
         }
-
         // Assign each pixel to its final centroid color
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -44,8 +36,6 @@ public class Logic {
                 quantizedImage.setRGB(x, y, clusterColor.getRGB());
             }
         }
-
-
         return quantizedImage;
     }
     private java.util.List<Color> getRandomCentroids(int k) {
@@ -106,41 +96,34 @@ public class Logic {
         int[] sumGreen = new int[k];
         int[] sumBlue = new int[k];
         int[] count = new int[k];
-
         int width = image.getWidth();
         int height = image.getHeight();
-
         // Calculate the sums of RGB values for each cluster
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 int rgb = image.getRGB(x, y);
                 int clusterIndex = clusterAssignments[x][y];
-
                 sumRed[clusterIndex] += new Color(rgb).getRed();
                 sumGreen[clusterIndex] += new Color(rgb).getGreen();
                 sumBlue[clusterIndex] += new Color(rgb).getBlue();
                 count[clusterIndex]++;
             }
         }
-
         // Calculate the new centroid colors based on the sums and counts
         java.util.List<Color> newCentroids = new ArrayList<>();
-
         for (int i = 0; i < k; i++) {
             int red = count[i] > 0 ? sumRed[i] / count[i] : 0;
             int green = count[i] > 0 ? sumGreen[i] / count[i] : 0;
             int blue = count[i] > 0 ? sumBlue[i] / count[i] : 0;
-
             newCentroids.add(new Color(red, green, blue));
         }
-
         return newCentroids;
     }
 
 
 
     BufferedImage applyMedianCut(BufferedImage image) {
-        int maxColors = 8; // Maximum number of colors (change as needed)
+        int maxColors = 4; // Maximum number of colors (change as needed)
 
         int width = image.getWidth();
         int height = image.getHeight();
@@ -322,6 +305,8 @@ public class Logic {
 
         return count;
     }
+
+
 
 
 

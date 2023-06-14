@@ -30,6 +30,7 @@ public class ImageSearchApp1 extends JFrame {
     int MAX_COLORS=8;
     BufferedImage originalImage;
 
+
     private static final int MAX_DISPLAYED_IMAGES = 3;
 
     private class ImageData {
@@ -89,6 +90,12 @@ public class ImageSearchApp1 extends JFrame {
         frame.add(topPanel, BorderLayout.NORTH);
         frame.add(centerPanel, BorderLayout.CENTER);
 
+        List<File> searchFolders = new ArrayList<>();
+        searchFolders.add(new File("D:\\imagesTest"));
+        searchFolders.add(new File("D:\\imageTest2"));
+// Add more folders as needed
+
+
         chooseImageButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
@@ -108,21 +115,47 @@ public class ImageSearchApp1 extends JFrame {
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try{
-                    if(originalImage == null){
+                try {
+                    if (originalImage == null) {
                         System.out.print("null++++++++++++++++++++++++++++++++");
                         return;
                     }
-                    File searchFolder = new File("D:\\imagesTest");
-                    List<ImageData> outputImagesList = loadImageDataFromFolder(searchFolder);
+
+                    List<ImageData> outputImagesList = new ArrayList<>();
+
+                    for (File searchFolder : searchFolders) {
+                        List<ImageData> folderImageList = loadImageDataFromFolder(searchFolder);
+                        outputImagesList.addAll(folderImageList);
+                    }
+
                     userColorPalette = medianCut(getPixels(originalImage), MAX_COLORS);
-                    outputImagesList=search(outputImagesList,userColorPalette);
-                    filter(outputImagesList,dateTextField.getText());
-                }catch (Exception ex){
+                    outputImagesList = search(outputImagesList, userColorPalette);
+                    filter(outputImagesList, dateTextField.getText());
+                } catch (Exception ex) {
                     ex.printStackTrace();
                 }
             }
         });
+
+
+//        searchButton.addActionListener(new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                try{
+//                    if(originalImage == null){
+//                        System.out.print("null++++++++++++++++++++++++++++++++");
+//                        return;
+//                    }
+//                    File searchFolder = new File("D:\\imagesTest");
+//                    List<ImageData> outputImagesList = loadImageDataFromFolder(searchFolder);
+//                    userColorPalette = medianCut(getPixels(originalImage), MAX_COLORS);
+//                    outputImagesList=search(outputImagesList,userColorPalette);
+//                    filter(outputImagesList,dateTextField.getText());
+//                }catch (Exception ex){
+//                    ex.printStackTrace();
+//                }
+//            }
+//        });
 
         frame.pack();
         frame.setVisible(true);
