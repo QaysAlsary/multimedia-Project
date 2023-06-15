@@ -24,6 +24,7 @@ public class ImageSearchApp1 extends JFrame {
     private JTextArea colorNamesTextArea;
     private JPanel[] resultPanels;
 
+   public BufferedImage currentImage;
     private File selectedImageFile;
     private List<Color> userColorPalette;
     private List<ImageData> imageList;
@@ -95,7 +96,6 @@ public class ImageSearchApp1 extends JFrame {
         searchFolders.add(new File("D:\\imageTest2"));
 // Add more folders as needed
 
-
         chooseImageButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
@@ -104,13 +104,36 @@ public class ImageSearchApp1 extends JFrame {
                     selectedImageFile = fileChooser.getSelectedFile();
                     try {
                         originalImage = ImageIO.read(selectedImageFile);
-                        System.out.println(originalImage);
+                        int newWidth = 400;  // Specify the desired width
+                        int newHeight = 300; // Specify the desired height
+                        BufferedImage resizedImage = resizeImage(originalImage, newWidth, newHeight);
+                        System.out.println(resizedImage);
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
                 }
             }
         });
+
+
+
+
+
+//        chooseImageButton.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent e) {
+//                JFileChooser fileChooser = new JFileChooser();
+//                int result = fileChooser.showOpenDialog(ImageSearchApp1.this);
+//                if (result == JFileChooser.APPROVE_OPTION) {
+//                    selectedImageFile = fileChooser.getSelectedFile();
+//                    try {
+//                        originalImage = ImageIO.read(selectedImageFile);
+//                        System.out.println(originalImage);
+//                    } catch (IOException ex) {
+//                        ex.printStackTrace();
+//                    }
+//                }
+//            }
+//        });
 
         searchButton.addActionListener(new ActionListener() {
             @Override
@@ -161,6 +184,13 @@ public class ImageSearchApp1 extends JFrame {
         frame.setVisible(true);
     }
 
+    private BufferedImage resizeImage(BufferedImage originalImage, int width, int height) {
+        BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = resizedImage.createGraphics();
+        graphics.drawImage(originalImage, 0, 0, width, height, null);
+        graphics.dispose();
+        return resizedImage;
+    }
     private List<Color> getPixels(BufferedImage image) {
         List<Color> pixels = new ArrayList<>();
         int width = image.getWidth();
@@ -178,7 +208,7 @@ public class ImageSearchApp1 extends JFrame {
 
     private java.util.List<Color> medianCut(java.util.List<Color> pixels, int maxColors) {
         // Calculate the initial color cube containing all pixels
-        ImageSearchApp1.ColorCube cube = new ImageSearchApp1.ColorCube(pixels);
+        ImageSearchApp1.ColorCube cube = new ImageSearchApp1.ColorCube(pixels,currentImage);
 
         // Queue to store the color cubes
         java.util.List<ImageSearchApp1.ColorCube> cubeQueue = new ArrayList<>();
@@ -226,6 +256,7 @@ public class ImageSearchApp1 extends JFrame {
             for (File file : files) {
                 if (file.isFile()) {
                     BufferedImage image = loadImage(file);
+                    currentImage = image;
                     List<Color> colorPalette = medianCut(getPixels(image), MAX_COLORS);
                     imageList.add(new ImageData(file, colorPalette));
                 }
@@ -422,9 +453,12 @@ public class ImageSearchApp1 extends JFrame {
         private int minBlue;
         private int maxBlue;
         private java.util.List<Color> pixels;
+        BufferedImage currentImage;
 
-        public ColorCube(java.util.List<Color> pixels) {
+
+        public ColorCube(java.util.List<Color> pixels,BufferedImage currentImage) {
             this.pixels = pixels;
+            this.currentImage=currentImage;
             initializeRanges();
         }
 
@@ -470,20 +504,20 @@ public class ImageSearchApp1 extends JFrame {
             if (redRange >= greenRange && redRange >= blueRange) {
                 // Split along the red axis
                 int splitValue = (minRed + maxRed) / 2;
-                ImageSearchApp1.ColorCube cube1 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "red", true));
-                ImageSearchApp1.ColorCube cube2 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "red", false));
+                ImageSearchApp1.ColorCube cube1 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "red", true),currentImage);
+                ImageSearchApp1.ColorCube cube2 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "red", false),currentImage);
                 return new ImageSearchApp1.ColorCube[]{cube1, cube2};
             } else if (greenRange >= redRange && greenRange >= blueRange) {
                 // Split along the green axis
                 int splitValue = (minGreen + maxGreen) / 2;
-                ImageSearchApp1.ColorCube cube1 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "green", true));
-                ImageSearchApp1.ColorCube cube2 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "green", false));
+                ImageSearchApp1.ColorCube cube1 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "green", true),currentImage);
+                ImageSearchApp1.ColorCube cube2 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "green", false),currentImage);
                 return new ImageSearchApp1.ColorCube[]{cube1, cube2};
             } else {
                 // Split along the blue axis
                 int splitValue = (minBlue + maxBlue) / 2;
-                ImageSearchApp1.ColorCube cube1 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "blue", true));
-                ImageSearchApp1.ColorCube cube2 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "blue", false));
+                ImageSearchApp1.ColorCube cube1 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "blue", true),currentImage);
+                ImageSearchApp1.ColorCube cube2 = new ImageSearchApp1.ColorCube(filterPixels(splitValue, "blue", false),currentImage);
                 return new ImageSearchApp1.ColorCube[]{cube1, cube2};
             }
         }
@@ -518,8 +552,28 @@ public class ImageSearchApp1 extends JFrame {
             return filteredPixels;
         }
 
-        public Color getRepresentativeColor() {
-            int sumRed = 0;
+//        public Color getRepresentativeColor() {
+//            int sumRed = 0;
+//            int sumGreen = 0;
+//            int sumBlue = 0;
+//            int count = pixels.size();
+//            for (Color color : pixels) {
+//                sumRed += color.getRed();
+//                sumGreen += color.getGreen();
+//                sumBlue += color.getBlue();
+//            }
+//            int avgRed = sumRed / count;
+//            int avgGreen = sumGreen / count;
+//            int avgBlue = sumBlue / count;
+//            return new Color(avgRed, avgGreen, avgBlue);
+//        }
+
+        private Color getRepresentativeColor() {
+            if (currentImage.getType() == BufferedImage.TYPE_BYTE_INDEXED) {
+                int representativePixel = currentImage.getRGB(currentImage.getWidth() / 2, currentImage.getHeight() / 2);
+                return new Color(representativePixel);
+            } else {
+                int sumRed = 0;
             int sumGreen = 0;
             int sumBlue = 0;
             int count = pixels.size();
@@ -532,6 +586,8 @@ public class ImageSearchApp1 extends JFrame {
             int avgGreen = sumGreen / count;
             int avgBlue = sumBlue / count;
             return new Color(avgRed, avgGreen, avgBlue);
+            }
         }
+
     }
 }
