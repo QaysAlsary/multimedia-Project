@@ -20,11 +20,13 @@ public class ImageSearchApp1 extends JFrame {
     private JFrame frame;
     private JButton chooseImageButton;
     private JButton searchButton;
+    JButton cropButton = new JButton("Crop and Search");
+
     private JTextField dateTextField;
     private JTextArea colorNamesTextArea;
     private JPanel[] resultPanels;
 
-   public BufferedImage currentImage;
+    public BufferedImage currentImage;
     private File selectedImageFile;
     private List<Color> userColorPalette;
     private List<ImageData> imageList;
@@ -80,6 +82,8 @@ public class ImageSearchApp1 extends JFrame {
         topPanel.add(colorNamesLabel);
         topPanel.add(new JScrollPane(colorNamesTextArea));
         topPanel.add(searchButton);
+        topPanel.add(cropButton);
+
 
         JPanel centerPanel = new JPanel(new GridLayout(1, 3));
         resultPanels = new JPanel[MAX_DISPLAYED_IMAGES];
@@ -94,7 +98,7 @@ public class ImageSearchApp1 extends JFrame {
         List<File> searchFolders = new ArrayList<>();
         searchFolders.add(new File("D:\\imagesTest"));
         searchFolders.add(new File("D:\\imageTest2"));
-// Add more folders as needed
+
 
         chooseImageButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -104,8 +108,8 @@ public class ImageSearchApp1 extends JFrame {
                     selectedImageFile = fileChooser.getSelectedFile();
                     try {
                         originalImage = ImageIO.read(selectedImageFile);
-                        int newWidth = 400;  // Specify the desired width
-                        int newHeight = 300; // Specify the desired height
+                        int newWidth = 400;
+                        int newHeight = 300;
                         BufferedImage resizedImage = resizeImage(originalImage, newWidth, newHeight);
                         System.out.println(resizedImage);
                     } catch (IOException ex) {
@@ -114,26 +118,6 @@ public class ImageSearchApp1 extends JFrame {
                 }
             }
         });
-
-
-
-
-
-//        chooseImageButton.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent e) {
-//                JFileChooser fileChooser = new JFileChooser();
-//                int result = fileChooser.showOpenDialog(ImageSearchApp1.this);
-//                if (result == JFileChooser.APPROVE_OPTION) {
-//                    selectedImageFile = fileChooser.getSelectedFile();
-//                    try {
-//                        originalImage = ImageIO.read(selectedImageFile);
-//                        System.out.println(originalImage);
-//                    } catch (IOException ex) {
-//                        ex.printStackTrace();
-//                    }
-//                }
-//            }
-//        });
 
         searchButton.addActionListener(new ActionListener() {
             @Override
@@ -159,6 +143,34 @@ public class ImageSearchApp1 extends JFrame {
                 }
             }
         });
+        cropButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (selectedImageFile != null) {
+                    try {
+                        List<ImageData> outputImagesList = new ArrayList<>();
+
+                        for (File searchFolder : searchFolders) {
+                            List<ImageData> folderImageList = loadImageDataFromFolder(searchFolder);
+                            outputImagesList.addAll(folderImageList);
+                        }
+                        int x = 50; // The x-coordinate of the top-left corner of the cropped area
+                        int y = 50; // The y-coordinate of the top-left corner of the cropped area
+                        int width = 200; // The width of the cropped area
+                        int height = 150; // The height of the cropped area
+
+                        BufferedImage croppedImage = originalImage.getSubimage(x, y, width, height);
+                        List<Color> croppedPixels = getPixels(croppedImage);
+                        List<Color> croppedColorPalette = medianCut(croppedPixels, MAX_COLORS);
+                        outputImagesList = search(outputImagesList, croppedColorPalette);
+                        filter(outputImagesList, dateTextField.getText());
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        });
+
 
 
 //        searchButton.addActionListener(new ActionListener() {
@@ -574,18 +586,18 @@ public class ImageSearchApp1 extends JFrame {
                 return new Color(representativePixel);
             } else {
                 int sumRed = 0;
-            int sumGreen = 0;
-            int sumBlue = 0;
-            int count = pixels.size();
-            for (Color color : pixels) {
-                sumRed += color.getRed();
-                sumGreen += color.getGreen();
-                sumBlue += color.getBlue();
-            }
-            int avgRed = sumRed / count;
-            int avgGreen = sumGreen / count;
-            int avgBlue = sumBlue / count;
-            return new Color(avgRed, avgGreen, avgBlue);
+                int sumGreen = 0;
+                int sumBlue = 0;
+                int count = pixels.size();
+                for (Color color : pixels) {
+                    sumRed += color.getRed();
+                    sumGreen += color.getGreen();
+                    sumBlue += color.getBlue();
+                }
+                int avgRed = sumRed / count;
+                int avgGreen = sumGreen / count;
+                int avgBlue = sumBlue / count;
+                return new Color(avgRed, avgGreen, avgBlue);
             }
         }
 
